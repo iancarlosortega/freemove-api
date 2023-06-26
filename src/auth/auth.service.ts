@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from './../user/entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { OAuthLoginUserDto } from './dto/oauth-login-user-dto';
 
 @Injectable()
 export class AuthService {
@@ -55,6 +56,38 @@ export class AuthService {
       email: email.toLowerCase(),
       role,
       fullName,
+      provider,
+    };
+  }
+
+  async oAuthLogin(oauthLoginUserDto: OAuthLoginUserDto) {
+    const user = await this.userModel.findOne({
+      email: oauthLoginUserDto.email.toLowerCase().trim(),
+    });
+
+    if (user) {
+      const { role, fullName, _id, provider } = user;
+
+      return {
+        _id,
+        email: oauthLoginUserDto.email.toLowerCase(),
+        role,
+        fullName,
+        provider,
+      };
+    }
+
+    const newUser = await this.userModel.create({
+      email: oauthLoginUserDto.email,
+      password: '@',
+      fullName: oauthLoginUserDto.fullName,
+    });
+    const { _id, email, fullName, role, provider } = newUser;
+    return {
+      _id,
+      email,
+      fullName,
+      role,
       provider,
     };
   }
