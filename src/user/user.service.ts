@@ -1,26 +1,70 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { Model, isValidObjectId } from 'mongoose';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { IUser } from './interfaces';
+import { InjectModel } from '@nestjs/mongoose';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
+  private readonly logger = new Logger('UserService');
+
+  constructor(
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
+  ) {}
 
   findAll() {
     return `This action returns all user`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(term: string) {
+    let user: IUser;
+
+    // MongoId
+    if (isValidObjectId(term)) {
+      user = await this.userModel.findById(term);
+    }
+
+    // Name
+    if (!user) {
+      user = await this.userModel.findOne(
+        {
+          email: term.toLowerCase().trim(),
+        },
+        {
+          password: 0,
+          __v: 0,
+        },
+      );
+    }
+
+    if (!user)
+      throw new NotFoundException(
+        `No se encontró un usuario con el id o email: ${term}`,
+      );
+
+    return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  update(id: string, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} user`;
+  }
+
+  private handleDBExceptions(error: any): never {
+    this.logger.error(error);
+    console.log(error);
+    throw new InternalServerErrorException(
+      'Unexpected error, check server logs',
+    );
   }
 }

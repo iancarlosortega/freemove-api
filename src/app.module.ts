@@ -7,6 +7,7 @@ import { JoiValidationSchema } from 'config/join.validation';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { UserModule } from './user/user.module';
     MongooseModule.forRoot(process.env.MONGO_URI),
     AuthModule,
     UserModule,
+    CommonModule,
   ],
   controllers: [],
   providers: [],
