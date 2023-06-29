@@ -3,8 +3,9 @@ export interface IUser {
   fullName: string;
   email: string;
   password: string;
-  role: IUserRole;
-  provider: IUserProvider;
+  role: ValidRoles;
+  provider: ValidProviders;
+  isActive: boolean;
   age?: number;
   phone?: string;
   gender?: string;
@@ -25,13 +26,13 @@ export interface IUser {
   updatedAt: Date;
 }
 
-export enum IUserProvider {
+export enum ValidProviders {
   EMAIL = 'email-password',
   GOOGLE = 'google',
   FACEBOOK = 'facebook',
 }
 
-export enum IUserRole {
+export enum ValidRoles {
   ADMIN = 'ADMIN',
   USER = 'USER',
 }

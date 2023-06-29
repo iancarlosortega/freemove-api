@@ -1,16 +1,16 @@
-import { BadRequestException } from '@nestjs/common/exceptions';
 import {
   Injectable,
   InternalServerErrorException,
+  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from './../user/entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
-import { OAuthLoginUserDto } from './dto/oauth-login-user-dto';
+import { CreateUserDto, LoginUserDto } from './dtos';
+import { JwtPayload } from './interfaces';
 
 @Injectable()
 export class AuthService {
@@ -19,20 +19,18 @@ export class AuthService {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    createUserDto.email = createUserDto.email.toLowerCase();
+    createUserDto.email = createUserDto.email.toLowerCase().trim();
     createUserDto.password = bcrypt.hashSync(createUserDto.password, 10);
     try {
       const user = await this.userModel.create(createUserDto);
-      const { _id, email, fullName, role, provider } = user;
+      delete user.password;
       return {
-        _id,
-        email,
-        fullName,
-        role,
-        provider,
+        ...user,
+        token: this.getJwtToken({ id: user.id }),
       };
     } catch (error) {
       this.handleDBExceptions(error);
@@ -49,47 +47,23 @@ export class AuthService {
       throw new BadRequestException('Credenciales inválidas');
     }
 
-    const { role, fullName, _id, provider } = user;
-
+    delete user.password;
     return {
-      _id,
-      email: email.toLowerCase(),
-      role,
-      fullName,
-      provider,
+      ...user,
+      token: this.getJwtToken({ id: user.id }),
     };
   }
 
-  async oAuthLogin(oauthLoginUserDto: OAuthLoginUserDto) {
-    const user = await this.userModel.findOne({
-      email: oauthLoginUserDto.email.toLowerCase().trim(),
-    });
-
-    if (user) {
-      const { role, fullName, _id, provider } = user;
-
-      return {
-        _id,
-        email: oauthLoginUserDto.email.toLowerCase(),
-        role,
-        fullName,
-        provider,
-      };
-    }
-
-    const newUser = await this.userModel.create({
-      email: oauthLoginUserDto.email,
-      password: '@',
-      fullName: oauthLoginUserDto.fullName,
-    });
-    const { _id, email, fullName, role, provider } = newUser;
+  async checkAuthStatus(user: User) {
     return {
-      _id,
-      email,
-      fullName,
-      role,
-      provider,
+      ...user,
+      token: this.getJwtToken({ id: user.id }),
     };
+  }
+
+  private getJwtToken(payload: JwtPayload) {
+    const token = this.jwtService.sign(payload);
+    return token;
   }
 
   private handleDBExceptions(error: any): never {

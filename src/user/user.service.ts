@@ -4,11 +4,11 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import { Model, isValidObjectId } from 'mongoose';
+import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { IUser } from './interfaces';
-import { InjectModel } from '@nestjs/mongoose';
-import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService {

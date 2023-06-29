@@ -1,7 +1,7 @@
 import { Controller, Get, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ParseMongoIdPipe } from './../common/pipes/parse-mongo-id.pipe';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ParseMongoIdPipe } from './../common/pipes/parse-mongo-id.pipe';
 
 @Controller('user')
 export class UserController {

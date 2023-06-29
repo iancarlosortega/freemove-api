@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { IUserProvider, IUserRole } from '../interfaces';
+import { ValidProviders, ValidRoles } from '../interfaces';
 
 @Schema({ timestamps: true })
 export class User extends Document {
@@ -34,7 +34,7 @@ export class User extends Document {
       message: '{VALUE} no es rol válido',
     },
   })
-  role: IUserRole;
+  role: ValidRoles;
 
   @Prop({
     type: String,
@@ -45,7 +45,14 @@ export class User extends Document {
       message: '{VALUE} no es un proveedor válido',
     },
   })
-  provider: IUserProvider;
+  provider: ValidProviders;
+
+  @Prop({
+    type: Boolean,
+    required: true,
+    default: true,
+  })
+  isActive: boolean;
 
   @Prop({
     type: Number,
