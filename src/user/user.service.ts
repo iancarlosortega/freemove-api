@@ -28,20 +28,22 @@ export class UserService {
 
     // MongoId
     if (isValidObjectId(term)) {
-      user = await this.userModel.findById(term);
+      user = await this.userModel.findById(term).lean();
     }
 
     // Name
     if (!user) {
-      user = await this.userModel.findOne(
-        {
-          email: term.toLowerCase().trim(),
-        },
-        {
-          password: 0,
-          __v: 0,
-        },
-      );
+      user = await this.userModel
+        .findOne(
+          {
+            email: term.toLowerCase().trim(),
+          },
+          {
+            password: 0,
+            __v: 0,
+          },
+        )
+        .lean();
     }
 
     if (!user)

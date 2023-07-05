@@ -1,8 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { LoginUserDto } from './dtos/login-user.dto';
-import { OAuthLoginUserDto } from './dtos/oauth-login-user-dto';
+import { Auth, GetUser } from './decorators';
 
 @Controller('auth')
 export class AuthController {
@@ -18,8 +18,9 @@ export class AuthController {
     return this.authService.login(loginUserDto);
   }
 
-  @Post('oauth')
-  oAuthLoginUser(@Body() oauthLoginUserDto: OAuthLoginUserDto) {
-    return this.authService.oAuthLogin(oauthLoginUserDto);
+  @Get('check-status')
+  @Auth()
+  checkAuthStatus(@GetUser() user: any) {
+    return this.authService.checkAuthStatus(user);
   }
 }

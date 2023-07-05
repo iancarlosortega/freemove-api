@@ -1,10 +1,11 @@
 # FreeMove API
+
 ## Ejecutar en Desarrollo
 
 1. Clonar el repositorio
 
 ```
-git clone https://github.com/
+git clone https://github.com/iancarlosortega/freemove-api.git
 ```
 
 2. Ejecutar

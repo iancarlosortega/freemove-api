@@ -27,11 +27,12 @@ export class AuthService {
     createUserDto.password = bcrypt.hashSync(createUserDto.password, 10);
     try {
       const user = await this.userModel.create(createUserDto);
-      delete user.password;
-      return {
-        ...user,
+      const response = {
+        ...user.toJSON(),
         token: this.getJwtToken({ id: user.id }),
       };
+      delete response.password;
+      return response;
     } catch (error) {
       this.handleDBExceptions(error);
     }
@@ -39,14 +40,15 @@ export class AuthService {
 
   async login(loginUserDto: LoginUserDto) {
     const { email, password } = loginUserDto;
-    const user = await this.userModel.findOne({
-      email: email.toLowerCase().trim(),
-    });
+    const user = await this.userModel
+      .findOne({
+        email: email.toLowerCase().trim(),
+      })
+      .lean();
 
     if (!user || !bcrypt.compareSync(password, user.password)) {
       throw new BadRequestException('Credenciales inválidas');
     }
-
     delete user.password;
     return {
       ...user,
