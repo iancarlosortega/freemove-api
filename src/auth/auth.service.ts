@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from './../user/entities/user.entity';
 import { CreateUserDto, LoginUserDto } from './dtos';
 import { JwtPayload } from './interfaces';
+import { IUser } from 'src/user/interfaces';
 
 @Injectable()
 export class AuthService {
@@ -28,10 +29,10 @@ export class AuthService {
     try {
       const user = await this.userModel.create(createUserDto);
       const response = {
-        ...user.toJSON(),
-        token: this.getJwtToken({ id: user.id }),
+        user: user.toJSON(),
+        token: this.getJwtToken({ id: user._id }),
       };
-      delete response.password;
+      delete response.user.password;
       return response;
     } catch (error) {
       this.handleDBExceptions(error);
@@ -51,15 +52,15 @@ export class AuthService {
     }
     delete user.password;
     return {
-      ...user,
-      token: this.getJwtToken({ id: user.id }),
+      user,
+      token: this.getJwtToken({ id: user._id }),
     };
   }
 
-  async checkAuthStatus(user: User) {
+  async checkAuthStatus(user: IUser) {
     return {
-      ...user,
-      token: this.getJwtToken({ id: user.id }),
+      user,
+      token: this.getJwtToken({ id: user._id }),
     };
   }
 

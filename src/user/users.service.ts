@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -11,7 +12,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { IUser } from './interfaces';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   private readonly logger = new Logger('UserService');
 
   constructor(
@@ -19,8 +20,8 @@ export class UserService {
     private readonly userModel: Model<User>,
   ) {}
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll() {
+    return this.userModel.find().select('-password').lean();
   }
 
   async findOne(term: string) {
@@ -54,8 +55,27 @@ export class UserService {
     return user;
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    await this.findOne(id);
+    try {
+      const updatedUser = await this.userModel
+        .findOneAndUpdate(
+          {
+            _id: id,
+          },
+          {
+            $set: updateUserDto,
+          },
+          {
+            new: true,
+          },
+        )
+        .select('-password -__v')
+        .lean();
+      return updatedUser;
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
 
   remove(id: string) {
@@ -65,8 +85,13 @@ export class UserService {
   private handleDBExceptions(error: any): never {
     this.logger.error(error);
     console.log(error);
+    if (error.code === 11000) {
+      throw new BadRequestException(
+        'Ya existe un usuario con el email ingresado',
+      );
+    }
     throw new InternalServerErrorException(
-      'Unexpected error, check server logs',
+      'Error inesperado, revisar logs del servidor',
     );
   }
 }
